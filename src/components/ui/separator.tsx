@@ -1,26 +1,35 @@
+// Separator with Tremor Divider styling
 import * as React from "react";
-import * as SeparatorPrimitive from "@radix-ui/react-separator";
+import { cx } from "@/lib/utils";
 
-import { cn } from "@/lib/utils";
-
-function Separator({
-  className,
-  orientation = "horizontal",
-  decorative = true,
-  ...props
-}: React.ComponentProps<typeof SeparatorPrimitive.Root>) {
-  return (
-    <SeparatorPrimitive.Root
-      data-slot="separator-root"
-      decorative={decorative}
-      orientation={orientation}
-      className={cn(
-        "bg-border shrink-0 data-[orientation=horizontal]:h-px data-[orientation=horizontal]:w-full data-[orientation=vertical]:h-full data-[orientation=vertical]:w-px",
-        className,
-      )}
-      {...props}
-    />
-  );
+interface SeparatorProps extends React.ComponentPropsWithoutRef<"hr"> {
+  orientation?: "horizontal" | "vertical";
+  decorative?: boolean;
 }
+
+const Separator = React.forwardRef<HTMLHRElement, SeparatorProps>(
+  ({ className, orientation = "horizontal", decorative = true, ...props }, ref) => {
+    return (
+      <hr
+        ref={ref}
+        data-slot="separator"
+        aria-orientation={orientation}
+        role={decorative ? "none" : "separator"}
+        className={cx(
+          // Tremor Divider base styling
+          "border-none shrink-0",
+          // border color
+          "bg-gray-200 dark:bg-gray-800",
+          // orientation
+          orientation === "horizontal" ? "h-px w-full" : "h-full w-px",
+          className,
+        )}
+        {...props}
+      />
+    );
+  }
+);
+
+Separator.displayName = "Separator";
 
 export { Separator };

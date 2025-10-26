@@ -1,46 +1,72 @@
+// Badge with Tremor styling and shadcn compatibility
 import * as React from "react";
-import { Slot } from "@radix-ui/react-slot";
-import { cva, type VariantProps } from "class-variance-authority";
+import {
+  Badge as TremorBadge,
+  badgeVariants as tremorBadgeVariants,
+  type BadgeProps as TremorBadgeProps,
+} from "../tremor/Badge";
+import { tv, type VariantProps } from "tailwind-variants";
 
-import { cn } from "@/lib/utils";
+// Map shadcn variants to Tremor variants
+const variantMap = {
+  default: "default",
+  secondary: "neutral",
+  destructive: "error",
+  outline: "neutral",
+} as const;
 
-const badgeVariants = cva(
-  "inline-flex items-center justify-center rounded-md border px-2 py-0.5 text-xs font-medium w-fit whitespace-nowrap shrink-0 [&>svg]:size-3 gap-1 [&>svg]:pointer-events-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive transition-[color,box-shadow] overflow-hidden",
-  {
-    variants: {
-      variant: {
-        default:
-          "border-transparent bg-primary text-primary-foreground [a&]:hover:bg-primary/90",
-        secondary:
-          "border-transparent bg-secondary text-secondary-foreground [a&]:hover:bg-secondary/90",
-        destructive:
-          "border-transparent bg-destructive text-white [a&]:hover:bg-destructive/90 focus-visible:ring-destructive/20 dark:focus-visible:ring-destructive/40 dark:bg-destructive/60",
-        outline:
-          "text-foreground [a&]:hover:bg-accent [a&]:hover:text-accent-foreground",
-      },
-    },
-    defaultVariants: {
-      variant: "default",
+// Extended badge variants for shadcn compatibility
+const badgeVariants = tv({
+  extend: tremorBadgeVariants,
+  variants: {
+    variant: {
+      // shadcn variants
+      default: tremorBadgeVariants.variants.variant.default,
+      secondary: tremorBadgeVariants.variants.variant.neutral,
+      destructive: tremorBadgeVariants.variants.variant.error,
+      outline: [
+        "bg-transparent ring-1 ring-gray-300 text-gray-900",
+        "dark:ring-gray-700 dark:text-gray-100",
+      ],
+      // Tremor variants (also available)
+      neutral: tremorBadgeVariants.variants.variant.neutral,
+      success: tremorBadgeVariants.variants.variant.success,
+      error: tremorBadgeVariants.variants.variant.error,
+      warning: tremorBadgeVariants.variants.variant.warning,
     },
   },
-);
+  defaultVariants: {
+    variant: "default",
+  },
+});
 
-function Badge({
-  className,
-  variant,
-  asChild = false,
-  ...props
-}: React.ComponentProps<"span"> &
-  VariantProps<typeof badgeVariants> & { asChild?: boolean }) {
-  const Comp = asChild ? Slot : "span";
-
-  return (
-    <Comp
-      data-slot="badge"
-      className={cn(badgeVariants({ variant }), className)}
-      {...props}
-    />
-  );
+interface BadgeProps
+  extends Omit<TremorBadgeProps, "variant">,
+    VariantProps<typeof badgeVariants> {
+  asChild?: boolean;
 }
 
+const Badge = React.forwardRef<HTMLSpanElement, BadgeProps>(
+  ({ variant, className, ...props }, ref) => {
+    // Map shadcn variant to Tremor variant
+    const tremorVariant = variant
+      ? variant in variantMap
+        ? variantMap[variant as keyof typeof variantMap]
+        : (variant as any)
+      : "default";
+
+    return (
+      <TremorBadge
+        ref={ref}
+        variant={tremorVariant as any}
+        className={className}
+        {...props}
+      />
+    );
+  }
+);
+
+Badge.displayName = "Badge";
+
 export { Badge, badgeVariants };
+export type { BadgeProps };
